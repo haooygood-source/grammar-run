@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Grammar Run! - Chapter 01~06</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky1:#8ED9FF; --sky2:#D9F4FF;
+  --road:#5A5A66; --road-dark:#3F3F49;
+  --lane-line:#F5D547;
+  --ink:#1B2A4A; --cream:#FFF8EC;
+  --coral:#FF6F59; --coral-dark:#E14F3D;
+  --sun:#FFC93C; --sun-dark:#F2A70B;
+  --ok:#3ECF8E; --bad:#FF4D6D;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{margin:0;height:100%;font-family:'Nunito',sans-serif;background:#111;}
+.title-font{font-family:'Baloo 2',sans-serif;}
+#app{position:relative;width:100%;max-width:480px;height:100vh;margin:0 auto;overflow:hidden;background:linear-gradient(180deg,var(--sky1),var(--sky2) 55%);}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;overflow-y:auto;}
+.screen.active{display:flex;}
+button{font-family:inherit;}
+
+/* ---------- HOME ---------- */
+#home{justify-content:center;padding:24px;gap:18px;}
+.logo-box{background:#fff;border:5px solid var(--ink);border-radius:22px;padding:24px;text-align:center;box-shadow:0 10px 0 rgba(27,42,74,.25);transform:rotate(-1.5deg);}
+.logo-box h1{margin:0;font-size:2.1rem;color:var(--coral);-webkit-text-stroke:2px var(--ink);text-shadow:3px 3px 0 var(--sun);}
+.logo-box .sub{margin-top:8px;font-weight:800;color:var(--ink);background:var(--sun);display:inline-block;padding:6px 14px;border-radius:20px;border:3px solid var(--ink);font-size:.85rem;}
+.chapters-tag{background:var(--ink);color:#fff;font-weight:700;font-size:.78rem;border-radius:12px;padding:8px 14px;text-align:center;line-height:1.5;}
+.home-btn{font-family:'Baloo 2',sans-serif;font-size:1.25rem;color:#fff;border:5px solid var(--ink);border-radius:16px;padding:14px 30px;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.25);width:240px;}
+.home-btn.primary{background:var(--coral);box-shadow:0 7px 0 var(--coral-dark);}
+.home-btn.secondary{background:#fff;color:var(--ink);box-shadow:0 7px 0 #c9c2b0;font-size:.95rem;padding:10px 20px;width:200px;}
+.home-btn:active{transform:translateY(5px);}
+
+/* ---------- MODAL (admin login) ---------- */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal-back.show{display:flex;}
+.modal-box{background:#fff;border:4px solid var(--ink);border-radius:18px;padding:22px;width:100%;max-width:340px;}
+.modal-box h3{margin:0 0 14px;color:var(--ink);font-family:'Baloo 2',sans-serif;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.8rem;font-weight:800;color:var(--ink);margin-bottom:4px;}
+.field input{width:100%;padding:10px 12px;border:3px solid var(--ink);border-radius:10px;font-size:1rem;font-family:inherit;}
+.modal-actions{display:flex;gap:8px;margin-top:16px;}
+.mbtn{flex:1;padding:10px;border-radius:10px;border:3px solid var(--ink);font-weight:800;cursor:pointer;}
+.mbtn.ok{background:var(--coral);color:#fff;}
+.mbtn.cancel{background:#eee;color:var(--ink);}
+.err-msg{color:var(--bad);font-size:.8rem;font-weight:800;margin-top:6px;display:none;}
+
+/* ---------- PLAYER INFO ---------- */
+#playerinfo{justify-content:center;padding:24px;gap:14px;}
+#playerinfo .modal-box{max-width:320px;box-shadow:0 10px 0 rgba(27,42,74,.2);}
+
+/* ---------- CHARACTER SELECT ---------- */
+#charselect{padding:20px 16px 40px;gap:14px;justify-content:flex-start;}
+#charselect h2{color:var(--ink);font-family:'Baloo 2',sans-serif;margin:6px 0 0;}
+.char-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:400px;}
+.char-card{background:#fff;border:4px solid var(--ink);border-radius:16px;padding:12px 6px;text-align:center;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.15);transition:transform .1s;}
+.char-card:active{transform:translateY(3px);}
+.char-card.selected{outline:4px solid var(--sun);background:#FFF3D0;}
+.char-emoji{font-size:2.3rem;}
+.char-name{font-size:.72rem;font-weight:800;color:var(--ink);margin-top:4px;}
+#char-confirm{margin-top:6px;}
+
+/* ---------- GAME ---------- */
+#game{justify-content:flex-start;padding:0;}
+.hud{width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,.85);z-index:5;}
+.hearts{display:flex;gap:5px;}
+.heart{width:20px;height:20px;}
+.hud-right{display:flex;gap:8px;align-items:center;}
+.pill{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:4px 10px;font-weight:800;font-size:.8rem;color:var(--ink);}
+.qbanner{width:100%;background:var(--ink);color:#fff;padding:10px 16px;font-weight:800;font-size:.92rem;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;line-height:1.4;}
+.qbanner .chtag{background:var(--sun);color:var(--ink);border-radius:8px;padding:1px 8px;font-size:.68rem;margin-right:6px;}
+
+.track{position:relative;flex:1;width:100%;overflow:hidden;background:linear-gradient(180deg,#8B8B99,var(--road) 30%,var(--road-dark) 100%);}
+.lane-lines{position:absolute;inset:0;display:flex;}
+.lane-div{flex:1;border-right:4px dashed rgba(255,255,255,.35);}
+.lane-div:last-child{border-right:none;}
+.roadmove{position:absolute;inset:0;background-image:repeating-linear-gradient(180deg, transparent 0 40px, rgba(255,255,255,.08) 40px 44px);animation:roadScroll 0.5s linear infinite;}
+@keyframes roadScroll{from{background-position-y:0;}to{background-position-y:44px;}}
+
+.gate-row{position:absolute;left:0;right:0;display:flex;top:-18%;transition:none;}
+.gate-lane{flex:1;display:flex;align-items:center;justify-content:center;padding:6px 4px;}
+.gate-chip{background:#fff;border:4px solid var(--ink);border-radius:14px;padding:10px 6px;font-weight:800;font-size:.8rem;color:var(--ink);text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.25);width:92%;min-height:44px;display:flex;align-items:center;justify-content:center;}
+
+.player-wrap{position:absolute;bottom:8%;left:0;width:25%;display:flex;justify-content:center;transition:left .18s ease;}
+.player-char{font-size:2.6rem;animation:run .35s ease-in-out infinite alternate;filter:drop-shadow(0 6px 4px rgba(0,0,0,.35));}
+@keyframes run{from{transform:translateY(0) rotate(-4deg);}to{transform:translateY(-8px) rotate(4deg);}}
+.player-char.crash{animation:crash .5s ease forwards;}
+@keyframes crash{0%{transform:rotate(0);}30%{transform:rotate(-30deg) translateX(-10px);}60%{transform:rotate(20deg) translateX(10px);}100%{transform:rotate(0);}}
+
+.lane-controls{position:absolute;bottom:0;left:0;right:0;display:flex;height:100%;z-index:3;}
+.lane-tap{flex:1;}
+
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0;}
+.flash.ok{background:var(--ok);}
+.flash.bad{background:var(--bad);}
+.flash.go{animation:flashGo .4s ease;}
+@keyframes flashGo{0%{opacity:0;}20%{opacity:.55;}100%{opacity:0;}}
+.shake{animation:shakeit .4s;}
+@keyframes shakeit{10%,90%{transform:translateX(-4px);}30%,70%{transform:translateX(6px);}50%{transform:translateX(-8px);}}
+
+.arrow-hint{position:absolute;bottom:2%;width:100%;text-align:center;color:rgba(255,255,255,.7);font-size:.7rem;font-weight:700;z-index:2;}
+
+/* ---------- OVER / CLEAR ---------- */
+#over,#clear{justify-content:center;padding:24px;gap:14px;}
+#over{background:#333;}
+.over-box{background:#e8e8e8;filter:grayscale(1);border:5px solid #222;border-radius:20px;padding:26px;text-align:center;}
+.over-box h2{margin:0 0 8px;color:#333;font-family:'Baloo 2',sans-serif;font-size:2rem;}
+.over-box p{color:#555;font-weight:700;margin:4px 0;}
+.clear-box{background:#fff;border:5px solid var(--ink);border-radius:20px;padding:26px;text-align:center;box-shadow:0 10px 0 rgba(27,42,74,.2);}
+.clear-box h2{color:var(--sun-dark);-webkit-text-stroke:1.5px var(--ink);font-family:'Baloo 2',sans-serif;}
+.retry-btn{font-family:'Baloo 2',sans-serif;font-size:1.15rem;color:#fff;background:var(--coral);border:4px solid var(--ink);border-radius:14px;padding:12px 26px;cursor:pointer;box-shadow:0 6px 0 var(--coral-dark);}
+
+/* ---------- ADMIN DASHBOARD ---------- */
+#admin{justify-content:flex-start;padding:16px;gap:10px;background:var(--cream);}
+#admin h2{color:var(--ink);font-family:'Baloo 2',sans-serif;margin:4px 0;}
+.admin-toolbar{display:flex;gap:8px;width:100%;flex-wrap:wrap;}
+.admin-toolbar button{padding:8px 12px;border:3px solid var(--ink);border-radius:10px;font-weight:800;cursor:pointer;background:#fff;color:var(--ink);font-size:.78rem;}
+.admin-table-wrap{width:100%;overflow-x:auto;background:#fff;border:3px solid var(--ink);border-radius:12px;}
+table{width:100%;border-collapse:collapse;font-size:.72rem;}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid #ddd;white-space:nowrap;}
+th{background:var(--ink);color:#fff;position:sticky;top:0;}
+tr:nth-child(even){background:#faf7f0;}
+.empty-note{padding:20px;color:#888;font-weight:700;text-align:center;font-size:.85rem;}
+.sync-note{font-size:.68rem;color:#888;text-align:center;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="home">
+    <div class="logo-box">
+      <h1 class="title-font">GRAMMAR<br>RUN!</h1>
+      <div class="sub">4레인 문법 러닝게임</div>
+    </div>
+    <div class="chapters-tag">CHAPTER 01~06 종합<br>문장성분·명사·대명사 / 동사 / 시제·조동사·수동태<br>형용사·부사·전치사 / to부정사·동명사·분사 / 접속사·관계대명사</div>
+    <button class="home-btn primary" id="btn-goto-name">🏃 게임 시작</button>
+    <button class="home-btn secondary" id="btn-admin-open">🔑 관리자 로그인</button>
+  </div>
+
+  <!-- PLAYER INFO -->
+  <div class="screen" id="playerinfo">
+    <div class="modal-box">
+      <h3>참가자 정보 입력</h3>
+      <div class="field"><label>이름</label><input id="p-name" type="text" placeholder="예: 홍길동" maxlength="20"></div>
+      <div class="field"><label>아이디 (학번 등)</label><input id="p-id" type="text" placeholder="예: 20301" maxlength="20"></div>
+      <div class="err-msg" id="p-err">이름과 아이디를 모두 입력해 주세요.</div>
+      <div class="modal-actions">
+        <button class="mbtn cancel" id="p-back">뒤로</button>
+        <button class="mbtn ok" id="p-next">다음 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTER SELECT -->
+  <div class="screen" id="charselect">
+    <h2 class="title-font">캐릭터를 선택하세요</h2>
+    <div class="char-grid" id="char-grid"></div>
+    <button class="home-btn primary" id="char-confirm" disabled>선택 완료 ▶</button>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="game">
+    <div class="hud">
+      <div class="hearts" id="hearts-box"></div>
+      <div class="hud-right">
+        <div class="pill" id="q-progress">0/60</div>
+        <div class="pill">🪙 <span id="score-val">0</span></div>
+      </div>
+    </div>
+    <div class="qbanner"><span class="chtag" id="chtag">CH1</span><span id="qtext">문제 로딩중...</span></div>
+    <div class="track" id="track">
+      <div class="roadmove"></div>
+      <div class="lane-lines">
+        <div class="lane-div"></div><div class="lane-div"></div><div class="lane-div"></div><div class="lane-div"></div>
+      </div>
+      <div class="gate-row" id="gate-row">
+        <div class="gate-lane"><div class="gate-chip" id="gc0"></div></div>
+        <div class="gate-lane"><div class="gate-chip" id="gc1"></div></div>
+        <div class="gate-lane"><div class="gate-chip" id="gc2"></div></div>
+        <div class="gate-lane"><div class="gate-chip" id="gc3"></div></div>
+      </div>
+      <div class="player-wrap" id="player-wrap"><div class="player-char" id="player-char">🐱</div></div>
+      <div class="lane-controls">
+        <div class="lane-tap" data-lane="0"></div>
+        <div class="lane-tap" data-lane="1"></div>
+        <div class="lane-tap" data-lane="2"></div>
+        <div class="lane-tap" data-lane="3"></div>
+      </div>
+      <div class="flash" id="flash"></div>
+      <div class="arrow-hint">◀ ▶ 좌우로 이동해서 정답 레인을 통과하세요 ▶ ▶</div>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="screen" id="over">
+    <div class="over-box">
+      <div style="font-size:2.6rem;">💀</div>
+      <h2>GAME OVER</h2>
+      <p id="over-score">획득 코인: 0</p>
+      <p id="over-correct">정답 수: 0 / 0</p>
+      <button class="retry-btn title-font" id="over-retry" style="margin-top:14px;">다시 도전</button>
+    </div>
+  </div>
+
+  <!-- CLEAR -->
+  <div class="screen" id="clear">
+    <div class="clear-box">
+      <h2 class="title-font">🎉 CLEAR! 🎉</h2>
+      <p>60문항을 모두 통과했어요!</p>
+      <p id="clear-score">획득 코인: 0</p>
+      <button class="retry-btn title-font" id="clear-retry" style="margin-top:10px;">다시 플레이</button>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div class="screen" id="admin">
+    <h2>📊 관리자 현황판</h2>
+    <div class="admin-toolbar">
+      <button id="admin-refresh">🔄 새로고침</button>
+      <button id="admin-sort-score">점수순 정렬</button>
+      <button id="admin-sort-time">최신순 정렬</button>
+      <button id="admin-clear">전체 기록 삭제</button>
+      <button id="admin-logout">로그아웃</button>
+    </div>
+    <div class="admin-table-wrap">
+      <table id="admin-table">
+        <thead>
+          <tr><th>이름</th><th>아이디</th><th>캐릭터</th><th>점수</th><th>정답/전체</th><th>결과</th><th>일시</th></tr>
+        </thead>
+        <tbody id="admin-tbody"></tbody>
+      </table>
+      <div class="empty-note" id="admin-empty" style="display:none;">아직 기록이 없습니다.</div>
+    </div>
+    <div class="sync-note" id="sync-note">저장 방식: 이 브라우저(기기) 로컬 저장</div>
+  </div>
+
+  <!-- ADMIN LOGIN MODAL -->
+  <div class="modal-back" id="admin-modal">
+    <div class="modal-box">
+      <h3>관리자 로그인</h3>
+      <div class="field"><label>아이디</label><input id="admin-id" type="text" autocomplete="off"></div>
+      <div class="field"><label>비밀번호</label><input id="admin-pw" type="password" autocomplete="off"></div>
+      <div class="err-msg" id="admin-err">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+      <div class="modal-actions">
+        <button class="mbtn cancel" id="admin-cancel">취소</button>
+        <button class="mbtn ok" id="admin-login">로그인</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   Grammar Run! - Chapter 01~06 종합 러닝 퀴즈 게임
+   문항은 챕터별 주제만 참고하여 새로 제작한 오리지널 문제입니다.
+   ========================================================= */
+
+/* ---------- 0. Admin credentials (client-side only, low-stakes) ---------- */
+const ADMIN_ID = "haooygood";
+const ADMIN_PW = "0313";
+
+/* ---------- 1. Optional Firebase cross-device sync ----------
+   기본값은 null -> localStorage만 사용 (기기별 저장).
+   여러 학생 기기의 기록을 관리자가 한 번에 보고 싶다면
+   README의 안내에 따라 Firebase 프로젝트를 만들고
+   아래 객체를 실제 config 값으로 채워주세요. */
+const FIREBASE_CONFIG = null;
+/* 예시:
+const FIREBASE_CONFIG = {
+  apiKey: "...", authDomain: "...", databaseURL: "https://xxx.firebaseio.com",
+  projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..."
+};
+*/
+let fbDB = null;
+function initFirebaseIfNeeded(cb){
+  if(!FIREBASE_CONFIG){ cb(); return; }
+  const s1 = document.createElement('script');
+  s1.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js";
+  s1.onload = () => {
+    const s2 = document.createElement('script');
+    s2.src = "https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js";
+    s2.onload = () => {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      fbDB = firebase.database();
+      document.getElementById('sync-note').textContent = '저장 방식: Firebase 클라우드 동기화 (모든 기기 공유)';
+      cb();
+    };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+
+function saveRecord(record){
+  if(fbDB){
+    fbDB.ref('grammarRunRecords').push(record);
+  } else {
+    const list = JSON.parse(localStorage.getItem('gr_records') || '[]');
+    list.push(record);
+    localStorage.setItem('gr_records', JSON.stringify(list));
+  }
+}
+function loadRecords(cb){
+  if(fbDB){
+    fbDB.ref('grammarRunRecords').once('value').then(snap=>{
+      const val = snap.val() || {};
+      cb(Object.values(val));
+    });
+  } else {
+    cb(JSON.parse(localStorage.getItem('gr_records') || '[]'));
+  }
+}
+function clearRecords(cb){
+  if(fbDB){
+    fbDB.ref('grammarRunRecords').remove().then(cb);
+  } else {
+    localStorage.removeItem('gr_records');
+    cb();
+  }
+}
+
+/* ---------- 2. Question bank: Chapter 01~06, 10문항씩 총 60문항 ---------- */
+const QUESTIONS = [
+// CHAPTER 01 - 영문법의 기본 개념 / 명사 / 대명사
+{ch:1,q:"문장에서 동작이나 상태를 나타내는 필수 성분은?",choices:["주어","동사","수식어","전치사"],answer:1},
+{ch:1,q:"He ___ my brother. 빈칸에 알맞은 것은?",choices:["am","are","is","be"],answer:2},
+{ch:1,q:"다음 중 셀 수 없는 명사는?",choices:["apple","water","book","pen"],answer:1},
+{ch:1,q:"child의 복수형은?",choices:["childs","childes","children","childrens"],answer:2},
+{ch:1,q:"'많은 조언'을 바르게 표현한 것은?",choices:["many advices","much advice","an advice","advices"],answer:1},
+{ch:1,q:"다음 중 명사 앞에 쓰는 소유격이 아닌 것은?",choices:["my","his","her","hers"],answer:3},
+{ch:1,q:"This is ___ book. (그녀의) 빈칸에 알맞은 것은?",choices:["she","her","hers","herself"],answer:1},
+{ch:1,q:"'I like pizza.' 에서 목적어는?",choices:["I","like","pizza","없음"],answer:2},
+{ch:1,q:"다음 중 재귀대명사가 아닌 것은?",choices:["myself","himself","theirs","ourselves"],answer:2},
+{ch:1,q:"sheep의 복수형은?",choices:["sheeps","sheep","sheepes","sheep's"],answer:1},
+// CHAPTER 02 - 동사
+{ch:2,q:"다음 중 be동사가 아닌 것은?",choices:["am","is","are","do"],answer:3},
+{ch:2,q:"She ___ to school every day. 빈칸에 알맞은 것은?",choices:["go","goes","going","went"],answer:1},
+{ch:2,q:"다음 중 목적어가 필요 없는 자동사는?",choices:["eat","make","sleep","buy"],answer:2},
+{ch:2,q:"동사원형이 올바른 것은?",choices:["studying","studied","study","studies"],answer:2},
+{ch:2,q:"다음 중 불규칙 동사의 과거형이 잘못된 것은?",choices:["go-went","eat-ate","buy-buyed","see-saw"],answer:2},
+{ch:2,q:"He ___ his homework yesterday. 빈칸에 알맞은 것은?",choices:["do","does","did","doing"],answer:2},
+{ch:2,q:"다음 중 4형식(수여동사) 문장은?",choices:["She is happy.","He runs fast.","I gave him a gift.","They arrived here."],answer:2},
+{ch:2,q:"다음 중 동사 뒤에 목적어가 오지 않는 것은?",choices:["want","need","arrive","make"],answer:2},
+{ch:2,q:"다음 중 be동사 과거형이 잘못 짝지어진 것은?",choices:["I was","You were","He was","They was"],answer:3},
+{ch:2,q:"다음 중 3인칭 단수 현재형이 올바른 것은?",choices:["She have","She has","She haves","She having"],answer:1},
+// CHAPTER 03 - 시제 / 조동사 / 수동태
+{ch:3,q:"현재진행형의 형태로 알맞은 것은?",choices:["be+동사원형ing","have+p.p.","will+동사원형","do+동사원형"],answer:0},
+{ch:3,q:"다음 중 현재완료 형태는?",choices:["am eating","have eaten","will eat","ate"],answer:1},
+{ch:3,q:"can의 과거형은?",choices:["canned","could","cann","can't"],answer:1},
+{ch:3,q:"다음 중 수동태 문장은?",choices:["He wrote a letter.","A letter was written by him.","He is writing a letter.","He will write a letter."],answer:1},
+{ch:3,q:"must의 의미로 알맞은 것은?",choices:["~할 수 있다","~해야 한다","~할 것이다","~였다"],answer:1},
+{ch:3,q:"다음 중 미래시제 표현이 아닌 것은?",choices:["will go","is going to go","went","shall go"],answer:2},
+{ch:3,q:"수동태의 기본 형태는?",choices:["be+p.p.","have+p.p.","be+ing","do+동사원형"],answer:0},
+{ch:3,q:"다음 중 과거진행형은?",choices:["I study.","I was studying.","I have studied.","I will study."],answer:1},
+{ch:3,q:"should의 의미로 알맞은 것은?",choices:["~해야 한다(조언)","~할 수 없다","~이었다","~하지 않겠다"],answer:0},
+{ch:3,q:"'She makes cookies.'의 수동태로 알맞은 것은?",choices:["Cookies is made by her.","Cookies are made by her.","Cookies was made by her.","Cookies making by her."],answer:1},
+// CHAPTER 04 - 형용사 / 부사 / 전치사
+{ch:4,q:"다음 중 형용사인 것은?",choices:["quickly","beautiful","run","happily"],answer:1},
+{ch:4,q:"다음 중 부사인 것은?",choices:["slow","quick","carefully","happy"],answer:2},
+{ch:4,q:"good의 부사형은?",choices:["goodly","well","gooder","good"],answer:1},
+{ch:4,q:"다음 중 전치사가 아닌 것은?",choices:["in","on","quickly","at"],answer:2},
+{ch:4,q:"'I get up ___ 7 o'clock.' 빈칸에 알맞은 전치사는?",choices:["in","on","at","for"],answer:2},
+{ch:4,q:"'The cat is ___ the table.' 빈칸에 알맞은 전치사는?",choices:["on","at","to","for"],answer:0},
+{ch:4,q:"good의 비교급으로 올바른 것은?",choices:["gooder","better","more good","good more"],answer:1},
+{ch:4,q:"tall의 최상급으로 올바른 것은?",choices:["the most tall","the tallest","tallest more","the taller"],answer:1},
+{ch:4,q:"빈도부사가 알맞게 위치한 문장은?",choices:["Always I am happy.","I always am happy.","I am always happy.","Always I happy am."],answer:2},
+{ch:4,q:"형용사가 명사를 꾸며주는 어순으로 올바른 것은?",choices:["a beautiful house","a house beautiful","beautiful a house","house a beautiful"],answer:0},
+// CHAPTER 05 - to부정사 / 동명사 / 분사
+{ch:5,q:"to부정사의 형태로 올바른 것은?",choices:["to+동사원형","동사+ing","동사+ed","동사원형"],answer:0},
+{ch:5,q:"다음 중 동명사가 쓰인 문장은?",choices:["I like to swim.","Swimming is fun.","I swim every day.","I will swim."],answer:1},
+{ch:5,q:"다음 중 to부정사의 명사적 용법이 쓰인 문장은?",choices:["I want to eat pizza.","I have a book to read.","She went to buy milk.","This is easy to do."],answer:0},
+{ch:5,q:"동명사는 문장에서 주로 어떤 역할을 하는가?",choices:["동사로만 쓰인다","명사 역할을 한다","전치사로만 쓰인다","접속사 역할만 한다"],answer:1},
+{ch:5,q:"다음 중 현재분사가 쓰인 것은?",choices:["a boring movie","a broken window","to break","broke"],answer:0},
+{ch:5,q:"다음 중 과거분사가 쓰인 것은?",choices:["a sleeping baby","a written letter","to write","writing"],answer:1},
+{ch:5,q:"enjoy 뒤에 오는 동사 형태로 알맞은 것은?",choices:["to swim","swim","swimming","swam"],answer:2},
+{ch:5,q:"want 뒤에 오는 동사 형태로 알맞은 것은?",choices:["to go","going","go","gone"],answer:0},
+{ch:5,q:"'I have a lot of homework to do.'에서 밑줄 부분의 용법은?",choices:["명사적 용법","형용사적 용법","부사적 용법","동사적 용법"],answer:1},
+{ch:5,q:"다음 중 분사구문으로 알맞은 것은?",choices:["Walking down the street, I saw a dog.","Walk down the street I saw a dog.","To walk down the street I saw a dog.","Walked down the street, I saw a dog."],answer:0},
+// CHAPTER 06 - 접속사 / 관계대명사 / 기타 구문
+{ch:6,q:"다음 중 등위접속사가 아닌 것은?",choices:["and","but","or","because"],answer:3},
+{ch:6,q:"사람을 선행사로 받는 관계대명사는?",choices:["which","who","that만 가능","what"],answer:1},
+{ch:6,q:"사물을 선행사로 받는 관계대명사는?",choices:["who","whom","which","what"],answer:2},
+{ch:6,q:"다음 중 종속접속사인 것은?",choices:["and","but","although","or"],answer:2},
+{ch:6,q:"'The girl ___ is singing is my sister.' 빈칸에 알맞은 것은?",choices:["which","who","whom","what"],answer:1},
+{ch:6,q:"다음 중 시간을 나타내는 접속사가 아닌 것은?",choices:["when","while","before","because"],answer:3},
+{ch:6,q:"이유를 나타내는 접속사는?",choices:["if","because","when","although"],answer:1},
+{ch:6,q:"다음 중 조건을 나타내는 접속사는?",choices:["if","so","and","but"],answer:0},
+{ch:6,q:"관계대명사 that을 쓸 수 없는 경우는?",choices:["사람 선행사","사물 선행사","콤마(,) 뒤 계속적 용법","사람+동물 선행사"],answer:2},
+{ch:6,q:"다음 중 양보를 나타내는 접속사는?",choices:["although","because","if","when"],answer:0}
+];
+
+/* ---------- 3. Characters (10, cute & simple, non-copyrighted) ---------- */
+const CHARACTERS = [
+  {emoji:"🐱",name:"고양이"},{emoji:"🐶",name:"강아지"},{emoji:"🐰",name:"토끼"},
+  {emoji:"🐼",name:"판다"},{emoji:"🦊",name:"여우"},{emoji:"🐻",name:"곰돌이"},
+  {emoji:"🐧",name:"펭귄"},{emoji:"🐹",name:"햄스터"},{emoji:"🦁",name:"사자"},{emoji:"🐨",name:"코알라"}
+];
+
+/* ---------- 4. State ---------- */
+let player = {name:"", id:"", char:null};
+let order = [];
+let idx = 0;
+let lives = 3;
+let coins = 0;
+let correctCount = 0;
+let gateDuration = 2600; // ms, shrinks as game progresses
+let laneIndex = 1;
+let gateAnimId = null;
+let gateStart = 0;
+let resolved = false;
+let startedAt = 0;
+
+/* ---------- 5. Screen helpers ---------- */
+const screens = ['home','playerinfo','charselect','game','over','clear','admin'];
+function show(id){
+  screens.forEach(s=>document.getElementById(s).classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---------- 6. Home & Admin login ---------- */
+document.getElementById('btn-goto-name').addEventListener('click', ()=>{
+  document.getElementById('p-name').value='';
+  document.getElementById('p-id').value='';
+  document.getElementById('p-err').style.display='none';
+  show('playerinfo');
+});
+document.getElementById('p-back').addEventListener('click', ()=>show('home'));
+document.getElementById('p-next').addEventListener('click', ()=>{
+  const name = document.getElementById('p-name').value.trim();
+  const id = document.getElementById('p-id').value.trim();
+  if(!name || !id){ document.getElementById('p-err').style.display='block'; return; }
+  player.name = name; player.id = id;
+  buildCharGrid();
+  show('charselect');
+});
+
+document.getElementById('btn-admin-open').addEventListener('click', ()=>{
+  document.getElementById('admin-id').value='';
+  document.getElementById('admin-pw').value='';
+  document.getElementById('admin-err').style.display='none';
+  document.getElementById('admin-modal').classList.add('show');
+});
+document.getElementById('admin-cancel').addEventListener('click', ()=>{
+  document.getElementById('admin-modal').classList.remove('show');
+});
+document.getElementById('admin-login').addEventListener('click', ()=>{
+  const id = document.getElementById('admin-id').value.trim();
+  const pw = document.getElementById('admin-pw').value.trim();
+  if(id === ADMIN_ID && pw === ADMIN_PW){
+    document.getElementById('admin-modal').classList.remove('show');
+    show('admin');
+    renderAdmin();
+  } else {
+    document.getElementById('admin-err').style.display='block';
+  }
+});
+document.getElementById('admin-logout').addEventListener('click', ()=>show('home'));
+document.getElementById('admin-refresh').addEventListener('click', renderAdmin);
+document.getElementById('admin-clear').addEventListener('click', ()=>{
+  if(confirm('모든 기록을 삭제할까요? 되돌릴 수 없습니다.')){
+    clearRecords(renderAdmin);
+  }
+});
+let sortMode = 'score';
+document.getElementById('admin-sort-score').addEventListener('click', ()=>{sortMode='score'; renderAdmin();});
+document.getElementById('admin-sort-time').addEventListener('click', ()=>{sortMode='time'; renderAdmin();});
+
+function renderAdmin(){
+  loadRecords(list=>{
+    if(sortMode==='score') list.sort((a,b)=>b.score-a.score);
+    else list.sort((a,b)=>new Date(b.time)-new Date(a.time));
+    const tbody = document.getElementById('admin-tbody');
+    const empty = document.getElementById('admin-empty');
+    tbody.innerHTML = '';
+    if(list.length===0){ empty.style.display='block'; return; }
+    empty.style.display='none';
+    list.forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.id)}</td><td>${r.charEmoji||''} ${escapeHtml(r.charName||'')}</td>
+        <td>${r.score}</td><td>${r.correct}/${r.total}</td><td>${r.result==='clear'?'✅ 클리어':'❌ 게임오버'}</td>
+        <td>${new Date(r.time).toLocaleString('ko-KR')}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- 7. Character select ---------- */
+function buildCharGrid(){
+  const grid = document.getElementById('char-grid');
+  grid.innerHTML = '';
+  player.char = null;
+  document.getElementById('char-confirm').disabled = true;
+  CHARACTERS.forEach((c,i)=>{
+    const card = document.createElement('div');
+    card.className = 'char-card';
+    card.innerHTML = `<div class="char-emoji">${c.emoji}</div><div class="char-name">${c.name}</div>`;
+    card.addEventListener('click', ()=>{
+      grid.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
+      card.classList.add('selected');
+      player.char = c;
+      document.getElementById('char-confirm').disabled = false;
+    });
+    grid.appendChild(card);
+  });
+}
+document.getElementById('char-confirm').addEventListener('click', ()=>{
+  document.getElementById('player-char').textContent = player.char.emoji;
+  startGame();
+});
+
+/* ---------- 8. Game logic ---------- */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function heartSVG(filled){
+  return `<svg class="heart" viewBox="0 0 24 24"><path fill="${filled?'#FF4D6D':'#9aa3b5'}" d="M12 21s-7.5-4.6-10-9.2C.6 8.4 2.2 4.8 5.7 4.2c2-.3 3.8.7 4.9 2.3.1.1.2.3.4.3.2 0 .3-.2.4-.3 1.1-1.6 2.9-2.6 4.9-2.3 3.5.6 5.1 4.2 3.7 7.6C19.5 16.4 12 21 12 21z"/></svg>`;
+}
+function renderHearts(){
+  const box = document.getElementById('hearts-box');
+  box.innerHTML='';
+  for(let i=0;i<3;i++) box.innerHTML += heartSVG(i<lives);
+}
+
+function startGame(){
+  order = shuffle(QUESTIONS);
+  idx = 0; lives = 3; coins = 0; correctCount = 0; gateDuration = 2600; laneIndex = 1;
+  startedAt = Date.now();
+  renderHearts();
+  document.getElementById('score-val').textContent = coins;
+  document.getElementById('q-progress').textContent = `1/${order.length}`;
+  setPlayerLane(1, true);
+  show('game');
+  loadGate();
+}
+
+function setPlayerLane(i, instant){
+  laneIndex = i;
+  const wrap = document.getElementById('player-wrap');
+  wrap.style.left = (i*25) + '%';
+}
+
+function loadGate(){
+  resolved = false;
+  const item = order[idx];
+  document.getElementById('chtag').textContent = 'CH' + item.ch;
+  document.getElementById('qtext').textContent = item.q;
+  document.getElementById('q-progress').textContent = `${idx+1}/${order.length}`;
+
+  // randomize which lane holds the correct answer
+  const laneAssign = shuffle([0,1,2,3]);
+  const correctLane = laneAssign.indexOf(0); // lane where original choice[0]... we'll build mapping properly below
+  // build a lane->choiceIndex mapping so exactly one lane = item.answer
+  const choiceIdxs = [0,1,2,3];
+  const shuffledChoiceIdxs = shuffle(choiceIdxs);
+  item._laneMap = shuffledChoiceIdxs; // lane i -> choice index shuffledChoiceIdxs[i]
+  item._correctLane = shuffledChoiceIdxs.indexOf(item.answer);
+
+  for(let i=0;i<4;i++){
+    document.getElementById('gc'+i).textContent = item.choices[shuffledChoiceIdxs[i]];
+  }
+
+  const gateRow = document.getElementById('gate-row');
+  gateRow.style.transition = 'none';
+  gateRow.style.top = '-18%';
+  gateRow.style.transform = 'scale(0.7)';
+  void gateRow.offsetWidth;
+  gateStart = performance.now();
+  animateGate();
+}
+
+function animateGate(){
+  const gateRow = document.getElementById('gate-row');
+  function step(now){
+    if(resolved) return;
+    const t = Math.min(1, (now - gateStart) / gateDuration);
+    const topPct = -18 + t*(78 - (-18)); // -18% -> 78%
+    const scale = 0.7 + t*(1.15-0.7);
+    gateRow.style.top = topPct+'%';
+    gateRow.style.transform = 'scale('+scale+')';
+    if(t >= 1){
+      resolveAnswer();
+      return;
+    }
+    gateAnimId = requestAnimationFrame(step);
+  }
+  gateAnimId = requestAnimationFrame(step);
+}
+
+function resolveAnswer(){
+  if(resolved) return;
+  resolved = true;
+  cancelAnimationFrame(gateAnimId);
+  const item = order[idx];
+  const correct = (laneIndex === item._correctLane);
+  const flash = document.getElementById('flash');
+  const track = document.getElementById('track');
+  const charEl = document.getElementById('player-char');
+
+  if(correct){
+    coins += 10; correctCount += 1;
+    document.getElementById('score-val').textContent = coins;
+    flash.className = 'flash ok go';
+    if(correctCount % 5 === 0) gateDuration = Math.max(1200, gateDuration - 150);
+  } else {
+    lives = Math.max(0, lives-1);
+    renderHearts();
+    flash.className = 'flash bad go';
+    track.classList.add('shake');
+    charEl.classList.add('crash');
+    setTimeout(()=>{track.classList.remove('shake'); charEl.classList.remove('crash');}, 500);
+  }
+
+  setTimeout(()=>{
+    flash.className = 'flash';
+    if(lives<=0){ endGame(false); return; }
+    idx += 1;
+    if(idx >= order.length){ endGame(true); return; }
+    loadGate();
+  }, 550);
+}
+
+/* lane controls: tap zones + arrow keys + swipe */
+document.querySelectorAll('.lane-tap').forEach(z=>{
+  z.addEventListener('click', ()=>{
+    const l = parseInt(z.dataset.lane,10);
+    setPlayerLane(l);
+  });
+});
+document.addEventListener('keydown', (e)=>{
+  if(!document.getElementById('game').classList.contains('active')) return;
+  if(e.key === 'ArrowLeft') setPlayerLane(Math.max(0, laneIndex-1));
+  if(e.key === 'ArrowRight') setPlayerLane(Math.min(3, laneIndex+1));
+});
+let touchStartX = null;
+document.getElementById('track').addEventListener('touchstart', e=>{ touchStartX = e.touches[0].clientX; });
+document.getElementById('track').addEventListener('touchend', e=>{
+  if(touchStartX===null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 30){
+    if(dx>0) setPlayerLane(Math.min(3, laneIndex+1));
+    else setPlayerLane(Math.max(0, laneIndex-1));
+  }
+  touchStartX = null;
+});
+
+function endGame(cleared){
+  const durationSec = Math.round((Date.now()-startedAt)/1000);
+  const record = {
+    name: player.name, id: player.id,
+    charEmoji: player.char.emoji, charName: player.char.name,
+    score: coins, correct: correctCount, total: order.length,
+    result: cleared ? 'clear' : 'gameover',
+    durationSec, time: new Date().toISOString()
+  };
+  saveRecord(record);
+
+  if(cleared){
+    document.getElementById('clear-score').textContent = '획득 코인: ' + coins;
+    show('clear');
+  } else {
+    document.getElementById('over-score').textContent = '획득 코인: ' + coins;
+    document.getElementById('over-correct').textContent = `정답 수: ${correctCount} / ${idx+1}`;
+    show('over');
+  }
+}
+document.getElementById('over-retry').addEventListener('click', ()=>show('home'));
+document.getElementById('clear-retry').addEventListener('click', ()=>show('home'));
+
+/* ---------- 9. Init ---------- */
+initFirebaseIfNeeded(()=>{ /* ready */ });
+</script>
+</body>
+</html>
