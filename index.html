@@ -409,7 +409,7 @@ let idx = 0;
 let lives = 3;
 let coins = 0;
 let correctCount = 0;
-let gateDuration = 15000; // ms, shrinks as game progresses
+let gateDuration = 20000; // ms, shrinks as game progresses
 let laneIndex = 1;
 let gateAnimId = null;
 let gateStart = 0;
@@ -609,7 +609,7 @@ function resolveAnswer(){
     coins += 10; correctCount += 1;
     document.getElementById('score-val').textContent = coins;
     flash.className = 'flash ok go';
-    if(correctCount % 5 === 0) gateDuration = Math.max(3000, gateDuration - 150);
+    if(correctCount % 5 === 0) gateDuration = Math.max(5000, gateDuration - 150);
   } else {
     lives = Math.max(0, lives-1);
     renderHearts();
